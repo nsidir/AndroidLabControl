@@ -8,6 +8,8 @@ import android.os.IBinder;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ServerStatusService extends Service {
     private final IBinder binder = new LocalBinder();
@@ -17,6 +19,8 @@ public class ServerStatusService extends Service {
     private List<String> ipList;
     private int port;
     private static final long CHECK_INTERVAL_MS = 5000;
+
+    private ExecutorService executorService = Executors.newFixedThreadPool(27);
 
     public class LocalBinder extends Binder {
         public ServerStatusService getService() {
@@ -59,15 +63,16 @@ public class ServerStatusService extends Service {
     }
 
     public void checkServers(final List<String> ipList, final int port) {
-        new Thread(() -> {
-            for (String ip : ipList) {
+        for (String ip : ipList) {
+            executorService.execute(() -> {
                 boolean isConnected = isReachable(ip, port);
                 if (callback != null) {
                     callback.onServerStatusChecked(ip, isConnected);
                 }
-            }
-        }).start();
+            });
+        }
     }
+
 
     private boolean isReachable(String ip, int port) {
         try (Socket socket = new Socket()) {
@@ -81,6 +86,7 @@ public class ServerStatusService extends Service {
     @Override
     public void onDestroy() {
         stopPeriodicChecks();
+        executorService.shutdownNow();
         super.onDestroy();
     }
 
