@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -20,10 +21,29 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private final Context context = this;
+
+    private final Random random = new Random();
+
+    private int getRandomColor() {
+        Random random = new Random();
+
+        int r, g, b;
+
+        // only bright colors
+        do {
+            r = random.nextInt(256);
+            g = random.nextInt(256);
+            b = random.nextInt(256);
+        } while ((r * 0.299 + g * 0.587 + b * 0.114) < 186);
+
+        return Color.rgb(r, g, b);
+    }
+
 
     final int SERVER_PORT = 41007;
 
@@ -93,6 +113,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         for (Map.Entry<String, String> entry : ipToNameMap.entrySet()) {
             CheckBox cb = new CheckBox(this);
             cb.setText(entry.getValue() + " (" + entry.getKey() + ")");
+            cb.setTextColor(getRandomColor());
             cb.setTag(entry.getKey());
             cb.setChecked(false);
             serverCheckboxContainer.addView(cb);

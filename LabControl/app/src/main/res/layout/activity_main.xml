@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mainLayout"
+    android:background="@color/gray"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
@@ -22,25 +23,64 @@
             android:id="@+id/echoButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Echo" />
+            android:backgroundTint="@color/maroon"
+            android:shadowColor="#000000"
+            android:shadowDx="2"
+            android:shadowDy="3"
+            android:shadowRadius="2"
+            android:text="Echo"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:layout_marginEnd="2dp"
+            />
 
         <Button
             android:id="@+id/restartButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Restart" />
+            android:text="Restart"
+            android:textStyle="bold"
+            android:backgroundTint="@color/maroon"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:shadowColor="#000000"
+            android:shadowDx="2"
+            android:shadowDy="3"
+            android:shadowRadius="2"
+            android:layout_marginEnd="2dp"
+            />
 
         <Button
             android:id="@+id/shutdownButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Shutdown" />
+            android:text="Shutdown"
+            android:textStyle="bold"
+            android:backgroundTint="@color/maroon"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:shadowColor="#000000"
+            android:shadowDx="2"
+            android:shadowDy="3"
+            android:shadowRadius="2"
+            android:layout_marginEnd="2dp"
+            />
 
         <Button
             android:id="@+id/restoreButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Restore" />
+            android:text="Restore"
+            android:textStyle="bold"
+            android:backgroundTint="@color/maroon"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:shadowColor="#000000"
+            android:shadowDx="2"
+            android:shadowDy="3"
+            android:shadowRadius="2"
+            />
     </LinearLayout>
 
     <!-- Server checkboxes -->
@@ -58,7 +98,9 @@
             android:id="@+id/serverCheckboxContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" />
+            android:orientation="vertical"
+            android:textColor="@color/white"
+            />
     </ScrollView>
 
     <!-- Response display -->
@@ -69,6 +111,10 @@
         android:text="Responses will appear here"
         android:padding="8dp"
         android:textSize="14sp"
+        android:textColor="@color/white"
+        android:background="#1AFFFFFF"
+        android:elevation="2dp"
+        android:textStyle="bold|italic"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
