@@ -128,14 +128,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             serverStatusService = binder.getService();
             isBound = true;
 
-            serverStatusService.setCallback((ip, isConnected) -> runOnUiThread(() -> {
+            serverStatusService.setCallback((ip, isConnected, os) -> runOnUiThread(() -> {
                 for (int i = 0; i < serverCheckboxContainer.getChildCount(); i++) {
                     CheckBox cb = (CheckBox) serverCheckboxContainer.getChildAt(i);
                     String cbIp = cb.getTag().toString();
                     if (cbIp.equals(ip)) {
                         cb.setEnabled(isConnected);
                         String label = ipToNameMap.get(ip) + " (" + ip + ")";
-                        cb.setText(label + (isConnected ? " ✅" : " ❌"));
+                        cb.setText(label + " " + os + (isConnected ? " ✅" : " ❌"));
                     }
                 }
             }));
@@ -150,23 +150,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     };
 
-    private void checkServerStatuses() {
-        if (!isBound) return;
-
-        serverStatusService.setCallback((ip, isConnected) -> runOnUiThread(() -> {
-            for (int i = 0; i < serverCheckboxContainer.getChildCount(); i++) {
-                CheckBox cb = (CheckBox) serverCheckboxContainer.getChildAt(i);
-                String cbIp = cb.getTag().toString();
-                if (cbIp.equals(ip)) {
-                    cb.setEnabled(isConnected);
-                    String label = ipToNameMap.get(ip) + " (" + ip + ")";
-                    cb.setText(label + (isConnected ? " ✅" : " ❌"));
-                }
-            }
-        }));
-
-        serverStatusService.checkServers(new ArrayList<>(ipToNameMap.keySet()), SERVER_PORT);
-    }
 
     @Override
     public void onClick(View v) {

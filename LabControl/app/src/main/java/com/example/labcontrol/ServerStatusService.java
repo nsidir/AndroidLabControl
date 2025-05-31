@@ -5,6 +5,10 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.List;
@@ -20,7 +24,7 @@ public class ServerStatusService extends Service {
     private int port;
     private static final long CHECK_INTERVAL_MS = 5000;
 
-    private ExecutorService executorService = Executors.newFixedThreadPool(27);
+    final private ExecutorService executorService = Executors.newFixedThreadPool(27);
 
     public class LocalBinder extends Binder {
         public ServerStatusService getService() {
@@ -66,14 +70,39 @@ public class ServerStatusService extends Service {
         for (String ip : ipList) {
             executorService.execute(() -> {
                 boolean isConnected = isReachable(ip, port);
+                String os = "";
+                if(isConnected) {
+                    Socket socket = new Socket();
+                    try {
+                        socket.connect(new InetSocketAddress(ip, port), 5000);
+
+                    OutputStream out = socket.getOutputStream();
+                    InputStream in = socket.getInputStream();
+
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+
+                    out.write(("getos").getBytes());
+                    out.flush();
+
+                    while ((bytesRead = in.read(buffer)) != -1) {
+                        os = new String(buffer, 0, bytesRead);
+                    }
+
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
                 if (callback != null) {
-                    callback.onServerStatusChecked(ip, isConnected);
+                    callback.onServerStatusChecked(ip, isConnected, os);
                 }
             });
         }
     }
 
 
+    // InetAddress inet = InetAddress.getByName(ipAddress);
+    // inet.isReachable(5000)
     private boolean isReachable(String ip, int port) {
         try (Socket socket = new Socket()) {
             socket.connect(new InetSocketAddress(ip, port), 1500);
@@ -91,6 +120,6 @@ public class ServerStatusService extends Service {
     }
 
     public interface ServerStatusCallback {
-        void onServerStatusChecked(String ip, boolean isConnected);
+        void onServerStatusChecked(String ip, boolean isConnected, String os);
     }
 }
