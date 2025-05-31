@@ -19,6 +19,11 @@ def get_os():
     else:
         return sys
 
+def handle_getOS(conn, os_name):
+    response = f"{os_name}"
+    conn.sendall(response.encode())
+    conn.close()
+
 def handle_echo(conn, hostname, os_name):
     print("Echo command received")
     response = f"{hostname} - {os_name}"
@@ -77,8 +82,14 @@ def handle_client(conn, addr):
             return
 
         command = data.lower()
+
+        if command == "getos":
+            threading.Thread(
+                target=handle_getOS,
+                args=(conn, os_name)
+            ).start()
         
-        if command == "echo":
+        elif command == "echo":
             threading.Thread(
                 target=handle_echo,
                 args=(conn, hostname, os_name)

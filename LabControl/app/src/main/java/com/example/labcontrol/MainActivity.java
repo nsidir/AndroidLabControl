@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     CheckBox cb = (CheckBox) serverCheckboxContainer.getChildAt(i);
                     String cbIp = cb.getTag().toString();
                     if (cbIp.equals(ip)) {
-                        cb.setEnabled(isConnected);
+                        //cb.setEnabled(isConnected);
                         String label = ipToNameMap.get(ip) + " (" + ip + ")";
                         cb.setText(label + " " + os + (isConnected ? " ✅" : " ❌"));
                     }
