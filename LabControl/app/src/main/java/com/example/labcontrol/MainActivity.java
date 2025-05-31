@@ -15,8 +15,9 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import android.media.MediaPlayer;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -26,9 +27,7 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private final Context context = this;
-
-    private final Random random = new Random();
+    private MediaPlayer mediaPlayer;
 
     private int getRandomColor() {
         Random random = new Random();
@@ -91,6 +90,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        View root = findViewById(R.id.mainLayout);
+        root.setAlpha(0f);
+        root.animate().alpha(1f).setDuration(2000).start();
+
         responseTextView = findViewById(R.id.responseTextView);
         serverCheckboxContainer = findViewById(R.id.serverCheckboxContainer);
 
@@ -104,13 +107,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         shutdownButton.setOnClickListener(this);
         restoreButton.setOnClickListener(this);
 
-        responseTextView = findViewById(R.id.responseTextView);
         responseTextView.setMovementMethod(new ScrollingMovementMethod());
 
         populateCheckboxes();
 
         Intent intent = new Intent(this, ServerStatusService.class);
         bindService(intent, connection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        mediaPlayer = MediaPlayer.create(this, R.raw.song);
+        mediaPlayer.setLooping(true);
+        mediaPlayer.start();
     }
 
     private void populateCheckboxes() {
@@ -127,7 +138,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private final ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Toast.makeText(context, "Service connected", Toast.LENGTH_SHORT).show();
             ServerStatusService.LocalBinder binder = (ServerStatusService.LocalBinder) service;
             serverStatusService = binder.getService();
             isBound = true;
@@ -149,7 +159,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            Toast.makeText(context, "Service disconnected", Toast.LENGTH_SHORT).show();
             isBound = false;
         }
     };
@@ -191,8 +200,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     };
 
     @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
+
         if (isBound) {
             serverStatusService.stopPeriodicChecks();
             unbindService(connection);
