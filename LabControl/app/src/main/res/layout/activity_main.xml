@@ -63,6 +63,11 @@
                 android:id="@+id/selectAllButton"
                 style="@style/ControlButtonStyle"
                 android:text="Select All" />
+
+            <Button
+                android:id="@+id/musicButton"
+                style="@style/ControlButtonStyle"
+                android:text="Music ⏯︎" />
         </LinearLayout>
     </LinearLayout>
 

@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     TextView responseTextView;
     LinearLayout serverCheckboxContainer;
-    Button echoButton, restartButton, shutdownButton, restoreButton, wakeButton, selectAllButton;
+    Button echoButton, restartButton, shutdownButton, restoreButton, wakeButton, selectAllButton, musicButton;
 
     private ServerStatusService serverStatusService;
     private boolean isBound = false;
@@ -103,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         restoreButton = findViewById(R.id.restoreButton);
         wakeButton = findViewById(R.id.wolButton);
         selectAllButton = findViewById(R.id.selectAllButton);
+        musicButton = findViewById(R.id.musicButton);
 
 
         echoButton.setOnClickListener(this);
@@ -111,6 +112,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         restoreButton.setOnClickListener(this);
         wakeButton.setOnClickListener(this);
         selectAllButton.setOnClickListener(this);
+        musicButton.setOnClickListener(this);
 
         responseTextView.setMovementMethod(new ScrollingMovementMethod());
 
@@ -177,7 +179,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (v == shutdownButton) command = "shutdown";
         if (v == restoreButton) command = "restore";
 
-        responseTextView.setText("");
+        if (!command.isEmpty()) responseTextView.setText("");
+
+        if (v == musicButton) {
+            if(mediaPlayer.isPlaying()){
+                mediaPlayer.pause();
+            } else {
+                mediaPlayer.start();
+            }
+        }
 
         for (int i = 0; i < serverCheckboxContainer.getChildCount(); i++) {
             CheckBox cb = (CheckBox) serverCheckboxContainer.getChildAt(i);
