@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     TextView responseTextView;
     LinearLayout serverCheckboxContainer;
-    Button echoButton, restartButton, shutdownButton, restoreButton;
+    Button echoButton, restartButton, shutdownButton, restoreButton, wakeButton, selectAllButton;
 
     private ServerStatusService serverStatusService;
     private boolean isBound = false;
@@ -101,11 +101,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         restartButton = findViewById(R.id.restartButton);
         shutdownButton = findViewById(R.id.shutdownButton);
         restoreButton = findViewById(R.id.restoreButton);
+        wakeButton = findViewById(R.id.wolButton);
+        selectAllButton = findViewById(R.id.selectAllButton);
+
 
         echoButton.setOnClickListener(this);
         restartButton.setOnClickListener(this);
         shutdownButton.setOnClickListener(this);
         restoreButton.setOnClickListener(this);
+        wakeButton.setOnClickListener(this);
+        selectAllButton.setOnClickListener(this);
 
         responseTextView.setMovementMethod(new ScrollingMovementMethod());
 
@@ -176,7 +181,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         for (int i = 0; i < serverCheckboxContainer.getChildCount(); i++) {
             CheckBox cb = (CheckBox) serverCheckboxContainer.getChildAt(i);
-            if (cb.isChecked() && cb.isEnabled()) {
+            if (v == selectAllButton) {
+                cb.setChecked(!cb.isChecked());
+            }
+            else if (cb.isChecked() && cb.isEnabled()) {
                 String ip = cb.getTag().toString();
                 new ServerCommandThread(this, ip, command).start();
             }
