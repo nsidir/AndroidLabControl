@@ -10,6 +10,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.view.View;
+import android.text.method.ScrollingMovementMethod;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
@@ -54,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ServerStatusService serverStatusService;
     private boolean isBound = false;
 
-    final Map<String, String> ipToNameMap = Stream.of(new String[][] {
+    static final Map<String, String> ipToNameMap = Stream.of(new String[][] {
             { "100.110.22.5", "Test" },
             { "192.168.88.2", "PRPC01" },
             { "192.168.88.3", "PRPC02" },
@@ -103,6 +104,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         shutdownButton.setOnClickListener(this);
         restoreButton.setOnClickListener(this);
 
+        responseTextView = findViewById(R.id.responseTextView);
+        responseTextView.setMovementMethod(new ScrollingMovementMethod());
+
         populateCheckboxes();
 
         Intent intent = new Intent(this, ServerStatusService.class);
@@ -134,8 +138,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     String cbIp = cb.getTag().toString();
                     if (cbIp.equals(ip)) {
                         //cb.setEnabled(isConnected);
-                        String label = ipToNameMap.get(ip) + " (" + ip + ")";
-                        cb.setText(label + " " + os + (isConnected ? " ✅" : " ❌"));
+                        String label = ipToNameMap.get(ip) + " (" + ip + ")" + " OS: " + os;
+                        cb.setText(label + (isConnected ? " ✅" : " ❌"));
                     }
                 }
             }));

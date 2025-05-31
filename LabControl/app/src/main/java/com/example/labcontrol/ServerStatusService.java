@@ -70,7 +70,7 @@ public class ServerStatusService extends Service {
         for (String ip : ipList) {
             executorService.execute(() -> {
                 boolean isConnected = isReachable(ip, port);
-                String os = "";
+                String os = "Unknown";
                 if(isConnected) {
                     Socket socket = new Socket();
                     try {
