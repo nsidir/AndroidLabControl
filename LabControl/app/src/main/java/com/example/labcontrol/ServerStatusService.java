@@ -24,7 +24,7 @@ public class ServerStatusService extends Service {
     private int port;
     private static final long CHECK_INTERVAL_MS = 5000;
 
-    final private ExecutorService executorService = Executors.newFixedThreadPool(27);
+    final private ExecutorService executorService = Executors.newFixedThreadPool(MainActivity.ipToNameMap.size());
 
     public class LocalBinder extends Binder {
         public ServerStatusService getService() {

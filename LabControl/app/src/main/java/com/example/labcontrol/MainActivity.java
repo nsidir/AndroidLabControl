@@ -16,46 +16,32 @@ import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
-import android.media.MediaPlayer;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
-
-    private MediaPlayer mediaPlayer;
-
-    private int getRandomColor() {
-        Random random = new Random();
-
-        int r, g, b;
-
-        // only bright colors
-        do {
-            r = random.nextInt(256);
-            g = random.nextInt(256);
-            b = random.nextInt(256);
-        } while ((r * 0.299 + g * 0.587 + b * 0.114) < 186);
-
-        return Color.rgb(r, g, b);
-    }
-
-
     final int SERVER_PORT = 41007;
 
     TextView responseTextView;
     LinearLayout serverCheckboxContainer;
-    Button echoButton, restartButton, shutdownButton, restoreButton, wakeButton, selectAllButton, musicButton;
+    Button echoButton, restartButton, shutdownButton,
+            restoreButton, wakeButton, selectAllButton,
+            musicButton, playlistButton;
+
+    private MusicService musicService;
+    private boolean isMusicBound = false;
 
     private ServerStatusService serverStatusService;
-    private boolean isBound = false;
+    private boolean isServerStatusBound = false;
 
     static final Map<String, String> ipToNameMap = Stream.of(new String[][] {
-            { "100.110.22.5", "Test" },
+            { "100.110.22.5", "TestHome" },
+            { "195.130.107.107", "PADA" },
             { "192.168.88.2", "PRPC01" },
             { "192.168.88.3", "PRPC02" },
             { "192.168.88.4", "PRPC03" },
@@ -83,7 +69,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             { "192.168.88.26", "PRPC25" },
             { "192.168.88.27", "PRPC26" },
             { "192.168.88.28", "PRPC27DESK" }
-    }).collect(Collectors.toMap(data -> data[0], data -> data[1], (e1, e2) -> e1, LinkedHashMap::new));
+    }).collect(Collectors.toMap(data -> data[0], data -> data[1],
+            (e1, e2) -> e1, LinkedHashMap::new));
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,17 +81,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         root.setAlpha(0f);
         root.animate().alpha(1f).setDuration(2000).start();
 
-        responseTextView = findViewById(R.id.responseTextView);
+        responseTextView       = findViewById(R.id.responseTextView);
         serverCheckboxContainer = findViewById(R.id.serverCheckboxContainer);
 
-        echoButton = findViewById(R.id.echoButton);
-        restartButton = findViewById(R.id.restartButton);
-        shutdownButton = findViewById(R.id.shutdownButton);
-        restoreButton = findViewById(R.id.restoreButton);
-        wakeButton = findViewById(R.id.wolButton);
+        echoButton      = findViewById(R.id.echoButton);
+        restartButton   = findViewById(R.id.restartButton);
+        shutdownButton  = findViewById(R.id.shutdownButton);
+        restoreButton   = findViewById(R.id.restoreButton);
+        wakeButton      = findViewById(R.id.wolButton);
         selectAllButton = findViewById(R.id.selectAllButton);
-        musicButton = findViewById(R.id.musicButton);
-
+        musicButton     = findViewById(R.id.musicButton);
+        playlistButton  = findViewById(R.id.playlistButton);
 
         echoButton.setOnClickListener(this);
         restartButton.setOnClickListener(this);
@@ -113,80 +100,104 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         wakeButton.setOnClickListener(this);
         selectAllButton.setOnClickListener(this);
         musicButton.setOnClickListener(this);
+        playlistButton.setOnClickListener(this);
 
         responseTextView.setMovementMethod(new ScrollingMovementMethod());
-
         populateCheckboxes();
 
-        Intent intent = new Intent(this, ServerStatusService.class);
-        bindService(intent, connection, Context.BIND_AUTO_CREATE);
+        Intent startMusic = new Intent(this, MusicService.class);
+        startService(startMusic);
+
+        bindService(startMusic, musicConnection, Context.BIND_AUTO_CREATE);
+
+        Intent serverIntent = new Intent(this, ServerStatusService.class);
+        bindService(serverIntent, connection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+    }
 
-        mediaPlayer = MediaPlayer.create(this, R.raw.song);
-        mediaPlayer.setLooping(true);
-        mediaPlayer.start();
+    @Override
+    protected void onRestart(){
+        super.onRestart();
     }
 
     private void populateCheckboxes() {
         for (Map.Entry<String, String> entry : ipToNameMap.entrySet()) {
             CheckBox cb = new CheckBox(this);
             cb.setText(entry.getValue() + " (" + entry.getKey() + ")");
-            cb.setTextColor(getRandomColor());
+            cb.setTextColor(RandomColor.getRandomColor());
             cb.setTag(entry.getKey());
             cb.setChecked(false);
             serverCheckboxContainer.addView(cb);
         }
     }
 
+    private final ServiceConnection musicConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MusicService.MusicBinder binder = (MusicService.MusicBinder) service;
+            musicService = binder.getService();
+            isMusicBound = true;
+        }
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            isMusicBound = false;
+        }
+    };
+
     private final ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             ServerStatusService.LocalBinder binder = (ServerStatusService.LocalBinder) service;
             serverStatusService = binder.getService();
-            isBound = true;
+            isServerStatusBound = true;
 
             serverStatusService.setCallback((ip, isConnected, os) -> runOnUiThread(() -> {
                 for (int i = 0; i < serverCheckboxContainer.getChildCount(); i++) {
                     CheckBox cb = (CheckBox) serverCheckboxContainer.getChildAt(i);
                     String cbIp = cb.getTag().toString();
                     if (cbIp.equals(ip)) {
-                        //cb.setEnabled(isConnected);
-                        String label = ipToNameMap.get(ip) + " (" + ip + ")" + " OS: " + os;
+                        String label = ipToNameMap.get(ip) + " (" + ip + ")" + "  OS: " + os;
                         cb.setText(label + (isConnected ? " ✅" : " ❌"));
                     }
                 }
             }));
-
-            serverStatusService.startPeriodicChecks(new ArrayList<>(ipToNameMap.keySet()), SERVER_PORT);
+            serverStatusService.startPeriodicChecks(
+                    new ArrayList<>(ipToNameMap.keySet()), SERVER_PORT);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            isBound = false;
+            isServerStatusBound = false;
         }
     };
-
 
     @Override
     public void onClick(View v) {
         String command = "";
-        if (v == echoButton) command = "echo";
+        if (v == echoButton)    command = "echo";
         if (v == restartButton) command = "restart";
-        if (v == shutdownButton) command = "shutdown";
+        if (v == shutdownButton)command = "shutdown";
         if (v == restoreButton) command = "restore";
 
-        if (!command.isEmpty()) responseTextView.setText("");
+        if (!command.isEmpty()) {
+            responseTextView.setText("");
+        }
 
         if (v == musicButton) {
-            if(mediaPlayer.isPlaying()){
-                mediaPlayer.pause();
-            } else {
-                mediaPlayer.start();
+            if (isMusicBound) {
+                musicService.pauseOrResume();
             }
+            return;
+        }
+
+        if (v == playlistButton) {
+            Intent intent = new Intent(MainActivity.this, PlaylistActivity.class);
+            startActivity(intent);
+            return;
         }
 
         for (int i = 0; i < serverCheckboxContainer.getChildCount(); i++) {
@@ -220,21 +231,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onStop() {
         super.onStop();
-
-        if (mediaPlayer != null) {
-            mediaPlayer.release();
-            mediaPlayer = null;
-        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
 
-        if (isBound) {
+        if (isMusicBound) {
+            unbindService(musicConnection);
+            isMusicBound = false;
+        }
+        if (isServerStatusBound) {
             serverStatusService.stopPeriodicChecks();
             unbindService(connection);
-            isBound = false;
+            isServerStatusBound = false;
         }
     }
 }

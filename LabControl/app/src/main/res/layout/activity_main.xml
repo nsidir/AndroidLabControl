@@ -67,7 +67,12 @@
             <Button
                 android:id="@+id/musicButton"
                 style="@style/ControlButtonStyle"
-                android:text="Music ⏯︎" />
+                android:text="Music ⏯" />
+
+            <Button
+                android:id="@+id/playlistButton"
+                style="@style/ControlButtonStyle"
+                android:text="Playlist" />
         </LinearLayout>
     </LinearLayout>
 

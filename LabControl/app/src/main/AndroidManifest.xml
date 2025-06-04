@@ -25,7 +25,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".PlaylistActivity"
+            android:label="Select a Song" />
+
         <service android:name=".ServerStatusService" />
+        <service android:name=".MusicService" />
+
     </application>
 
 </manifest>
