@@ -4,29 +4,29 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.view.View;
 import android.text.method.ScrollingMovementMethod;
+import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     final int SERVER_PORT = 41007;
 
+    TextView currentSongText;
     TextView responseTextView;
     LinearLayout serverCheckboxContainer;
     Button echoButton, restartButton, shutdownButton,
@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private MusicService musicService;
     private boolean isMusicBound = false;
+    private String padding = "\t \t \t \t \t \t \t \t \t \t \t \t \t \t \t \t \t";
 
     private ServerStatusService serverStatusService;
     private boolean isServerStatusBound = false;
@@ -81,6 +82,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         root.setAlpha(0f);
         root.animate().alpha(1f).setDuration(2000).start();
 
+        currentSongText = findViewById(R.id.currentSongText);
+        currentSongText.setSelected(true);
+
         responseTextView       = findViewById(R.id.responseTextView);
         serverCheckboxContainer = findViewById(R.id.serverCheckboxContainer);
 
@@ -124,6 +128,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onRestart();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (isMusicBound) {
+            String track = musicService.getCurrentTrackName();
+            currentSongText.setText(padding + "Now Playing: " + track + padding);
+        }
+    }
+
     private void populateCheckboxes() {
         for (Map.Entry<String, String> entry : ipToNameMap.entrySet()) {
             CheckBox cb = new CheckBox(this);
@@ -141,6 +154,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             MusicService.MusicBinder binder = (MusicService.MusicBinder) service;
             musicService = binder.getService();
             isMusicBound = true;
+
+            String track = musicService.getCurrentTrackName();
+            currentSongText.setText(padding + "Now Playing: " + track + padding);
+            currentSongText.setSelected(true);
         }
         @Override
         public void onServiceDisconnected(ComponentName name) {

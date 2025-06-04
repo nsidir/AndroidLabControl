@@ -7,11 +7,23 @@ import android.os.Binder;
 import android.os.IBinder;
 import androidx.annotation.Nullable;
 
+import java.util.HashMap;
+import java.util.Map;
+
+
 public class MusicService extends Service {
 
     private final IBinder binder = new MusicBinder();
     private MediaPlayer mediaPlayer;
     private boolean isPaused = false;
+
+    private String currentTrackName = "";
+
+    public static final Map<Integer, String> idToNameMap = new HashMap<>();
+    static {
+        idToNameMap.put(R.raw.song1, "Vangelis – Spiral");
+        idToNameMap.put(R.raw.song2, "Daft Punk – Around the World");
+    }
 
     public class MusicBinder extends Binder {
         MusicService getService() {
@@ -28,12 +40,14 @@ public class MusicService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        // Immediately start song1 (Spiral) by default:
         mediaPlayer = MediaPlayer.create(this, R.raw.song1);
         mediaPlayer.setLooping(true);
         mediaPlayer.start();
         isPaused = false;
-    }
 
+        currentTrackName = idToNameMap.get(R.raw.song1);
+    }
 
     public void play(int rawResId) {
         if (mediaPlayer != null) {
@@ -46,6 +60,12 @@ public class MusicService extends Service {
         mediaPlayer.setLooping(true);
         mediaPlayer.start();
         isPaused = false;
+
+        if (idToNameMap.containsKey(rawResId)) {
+            currentTrackName = idToNameMap.get(rawResId);
+        } else {
+            currentTrackName = "Unknown Track";
+        }
     }
 
     public void pauseOrResume() {
@@ -70,6 +90,10 @@ public class MusicService extends Service {
             mediaPlayer = null;
             isPaused = false;
         }
+    }
+
+    public String getCurrentTrackName() {
+        return currentTrackName;
     }
 
     @Override

@@ -30,11 +30,7 @@ public class PlaylistActivity extends AppCompatActivity {
     private ArrayList<String> rawResourceNames;
     private ArrayList<String> displayNames;
 
-    private static final Map<String, String> displayMap = new HashMap<>();
-    static {
-        displayMap.put("song1", "Vangelis – Spiral");
-        displayMap.put("song2", "Daft Punk – Around the World");
-    }
+    private static Map<Integer, String> displayMap = new HashMap<>();
 
     private MusicService musicService;
     private boolean isMusicBound = false;
@@ -44,9 +40,13 @@ public class PlaylistActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playlist);
 
+        displayMap = MusicService.idToNameMap;
+
         playlistListView   = findViewById(R.id.playlistListView);
         titleText          = findViewById(R.id.titleText);
         backButton = findViewById(R.id.backButton);
+
+        titleText.setSelected(true);
 
         rawResourceIds   = new ArrayList<>();
         rawResourceNames = new ArrayList<>();
@@ -60,8 +60,8 @@ public class PlaylistActivity extends AppCompatActivity {
                 rawResourceIds.add(resId);
                 rawResourceNames.add(rawName);
 
-                if (displayMap.containsKey(rawName)) {
-                    displayNames.add(displayMap.get(rawName));
+                if (displayMap.containsKey(resId)) {
+                    displayNames.add(displayMap.get(resId));
                 } else {
                     displayNames.add(rawName);
                 }
@@ -80,7 +80,6 @@ public class PlaylistActivity extends AppCompatActivity {
             public View getView(int position, View convertView, ViewGroup parent) {
                 View row = super.getView(position, convertView, parent);
                 TextView tv = row.findViewById(R.id.text1);
-                // assign a random (bright) color:
                 tv.setTextColor(RandomColor.getRandomColor());
                 return row;
             }
@@ -99,7 +98,7 @@ public class PlaylistActivity extends AppCompatActivity {
                 musicService.play(chosenResId);
 
                 String nowPlaying = displayNames.get(position);
-                titleText.setText("Playing: " + nowPlaying);
+                titleText.setText(nowPlaying);
             }
         });
 
