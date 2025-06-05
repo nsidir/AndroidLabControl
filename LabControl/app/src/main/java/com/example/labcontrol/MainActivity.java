@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -121,6 +122,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onStart() {
         super.onStart();
+        if (isMusicBound && !musicService.isPlaying()) {
+            musicService.pauseOrResume();
+        }
     }
 
     @Override
@@ -204,6 +208,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             responseTextView.setText("");
         }
 
+        if (v == wakeButton) {
+            boolean anySelected = false;
+            for (int i = 0; i < serverCheckboxContainer.getChildCount(); i++) {
+                CheckBox cb = (CheckBox) serverCheckboxContainer.getChildAt(i);
+                if (cb.isChecked() && cb.isEnabled()) {
+                    anySelected = true;
+                    String ip = cb.getTag().toString();
+                    String mac = WakeOnLan.ipToMacMap.get(ip);
+                    if (mac == null) {
+                        Toast.makeText(this, "No MAC found for " + ip, Toast.LENGTH_SHORT).show();
+                        continue;
+                    }
+                    String broadcastIp = ip.substring(0, ip.lastIndexOf('.')) + ".255";
+                    try {
+                        WakeOnLan.sendWakeOnLan(broadcastIp, mac);
+                        Toast.makeText(this, "Sent WOL to " + ip, Toast.LENGTH_SHORT).show();
+                    } catch (Exception e) {
+                        Toast.makeText(this,
+                                "Failed WOL to " + ip + ": " + e.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    }
+                }
+            }
+            if (!anySelected) {
+                Toast.makeText(this, "No servers selected for Wake-on-LAN", Toast.LENGTH_SHORT).show();
+            }
+            return;
+        }
+
         if (v == musicButton) {
             if (isMusicBound) {
                 musicService.pauseOrResume();
@@ -248,6 +281,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onStop() {
         super.onStop();
+    }
+
+    @Override
+    protected void onUserLeaveHint() {
+        super.onUserLeaveHint();
+        if (isMusicBound && musicService.isPlaying()) {
+            musicService.pauseOrResume();
+        }
     }
 
     @Override
