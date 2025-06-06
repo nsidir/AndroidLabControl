@@ -5,4 +5,12 @@
     <color name="gray">#211E21</color>
     <color name="maroon">#A81431</color>
     <color name="green">#16C00F</color>
+    <color name="ctl_echo">#2196F3</color>
+    <color name="ctl_restart">#0AC23E</color>
+    <color name="ctl_shutdown">#B10B0B</color>
+    <color name="ctl_restore">#4CAF50</color>
+    <color name="ctl_wake">#009688</color>
+    <color name="ctl_select_all">#3F51B5</color>
+    <color name="ctl_music">#9C27B0</color>
+    <color name="ctl_playlist">#FF9800</color>
 </resources>

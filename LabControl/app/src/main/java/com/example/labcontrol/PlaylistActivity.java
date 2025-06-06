@@ -119,14 +119,6 @@ public class PlaylistActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onUserLeaveHint() {
-        super.onUserLeaveHint();
-        if (isMusicBound && musicService.isPlaying()) {
-            musicService.pauseOrResume();
-        }
-    }
-
-    @Override
     protected void onDestroy() {
         super.onDestroy();
         if (isMusicBound) {

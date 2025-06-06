@@ -52,22 +52,26 @@
             <Button
                 android:id="@+id/echoButton"
                 style="@style/ControlButtonStyle"
-                android:text="Echo" />
+                android:text="Echo"
+                app:backgroundTint="@color/ctl_echo" />
 
             <Button
                 android:id="@+id/restartButton"
                 style="@style/ControlButtonStyle"
-                android:text="Restart" />
+                android:text="Restart"
+                app:backgroundTint="@color/ctl_restart" />
 
             <Button
                 android:id="@+id/shutdownButton"
                 style="@style/ControlButtonStyle"
-                android:text="Shutdown" />
+                android:text="Shutdown"
+                app:backgroundTint="@color/ctl_shutdown" />
 
             <Button
                 android:id="@+id/restoreButton"
                 style="@style/ControlButtonStyle"
-                android:text="Restore" />
+                android:text="Restore"
+                app:backgroundTint="@color/ctl_restore" />
         </LinearLayout>
 
         <LinearLayout
@@ -80,22 +84,26 @@
             <Button
                 android:id="@+id/wolButton"
                 style="@style/ControlButtonStyle"
-                android:text="Wake" />
+                android:text="Wake"
+                app:backgroundTint="@color/ctl_wake" />
 
             <Button
                 android:id="@+id/selectAllButton"
                 style="@style/ControlButtonStyle"
-                android:text="Select All" />
+                android:text="Select All"
+                app:backgroundTint="@color/ctl_select_all" />
 
-            <Button
-                android:id="@+id/musicButton"
+            <ToggleButton
+                android:textOff="Play"
+                android:textOn="Pause"
+                android:id="@+id/musicToggleButton"
                 style="@style/ControlButtonStyle"
-                android:text="Music ⏯" />
-
+                app:backgroundTint="@color/ctl_music" />
             <Button
                 android:id="@+id/playlistButton"
                 style="@style/ControlButtonStyle"
-                android:text="Playlist" />
+                android:text="Playlist"
+                app:backgroundTint="@color/ctl_playlist" />
         </LinearLayout>
     </LinearLayout>
 

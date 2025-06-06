@@ -8,7 +8,7 @@
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">#FFFFFF</item>
         <item name="android:textSize">12sp</item>
-        <item name="android:backgroundTint">@color/maroon</item>
+        <item name="android:background">@drawable/rounded</item>
         <item name="android:shadowColor">#000000</item>
         <item name="android:shadowDx">2</item>
         <item name="android:shadowDy">3</item>

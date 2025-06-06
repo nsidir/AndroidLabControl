@@ -15,6 +15,7 @@ import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -31,8 +32,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     TextView responseTextView;
     LinearLayout serverCheckboxContainer;
     Button echoButton, restartButton, shutdownButton,
-            restoreButton, wakeButton, selectAllButton,
-            musicButton, playlistButton;
+            restoreButton, wakeButton, selectAllButton, playlistButton;
+    ToggleButton musicToggleButton;
 
     private MusicService musicService;
     private boolean isMusicBound = false;
@@ -95,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         restoreButton   = findViewById(R.id.restoreButton);
         wakeButton      = findViewById(R.id.wolButton);
         selectAllButton = findViewById(R.id.selectAllButton);
-        musicButton     = findViewById(R.id.musicButton);
+        musicToggleButton     = findViewById(R.id.musicToggleButton);
         playlistButton  = findViewById(R.id.playlistButton);
 
         echoButton.setOnClickListener(this);
@@ -104,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         restoreButton.setOnClickListener(this);
         wakeButton.setOnClickListener(this);
         selectAllButton.setOnClickListener(this);
-        musicButton.setOnClickListener(this);
+        musicToggleButton.setOnClickListener(this);
         playlistButton.setOnClickListener(this);
 
         responseTextView.setMovementMethod(new ScrollingMovementMethod());
@@ -117,19 +118,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         Intent serverIntent = new Intent(this, ServerStatusService.class);
         bindService(serverIntent, connection, Context.BIND_AUTO_CREATE);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (isMusicBound && !musicService.isPlaying()) {
-            musicService.pauseOrResume();
-        }
-    }
-
-    @Override
-    protected void onRestart(){
-        super.onRestart();
     }
 
     @Override
@@ -158,6 +146,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             MusicService.MusicBinder binder = (MusicService.MusicBinder) service;
             musicService = binder.getService();
             isMusicBound = true;
+
+            musicToggleButton.setChecked(musicService.isPlaying());
 
             String track = musicService.getCurrentTrackName();
             currentSongText.setText(padding + "Now Playing: " + track + padding);
@@ -237,9 +227,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return;
         }
 
-        if (v == musicButton) {
+        if (v == musicToggleButton) {
             if (isMusicBound) {
                 musicService.pauseOrResume();
+                musicToggleButton.setChecked(musicService.isPlaying());
             }
             return;
         }
@@ -277,19 +268,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             responseTextView.append(content + "\n");
         }
     };
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
-
-    @Override
-    protected void onUserLeaveHint() {
-        super.onUserLeaveHint();
-        if (isMusicBound && musicService.isPlaying()) {
-            musicService.pauseOrResume();
-        }
-    }
 
     @Override
     protected void onDestroy() {

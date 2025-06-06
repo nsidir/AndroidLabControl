@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.IBinder;
-import androidx.annotation.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,6 +19,7 @@ public class MusicService extends Service {
     private String currentTrackName = "";
 
     public static final Map<Integer, String> idToNameMap = new HashMap<>();
+
     static {
         idToNameMap.put(R.raw.song1, "Vangelis – Spiral");
         idToNameMap.put(R.raw.song2, "Daft Punk – Around the World");
@@ -31,23 +31,49 @@ public class MusicService extends Service {
         }
     }
 
-    @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return binder;
     }
 
+    private boolean pausedBySystem = false;
+
     @Override
     public void onCreate() {
         super.onCreate();
-        // Immediately start song1 (Spiral) by default:
+        MusicServiceHolder.set(this);
         mediaPlayer = MediaPlayer.create(this, R.raw.song1);
         mediaPlayer.setLooping(true);
         mediaPlayer.start();
-        isPaused = false;
-
         currentTrackName = idToNameMap.get(R.raw.song1);
     }
+
+    @Override
+    public void onDestroy() {
+        MusicServiceHolder.clear();
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+        super.onDestroy();
+    }
+
+    public void onAppBackground() {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.pause();
+            pausedBySystem = true;            // remember it was playing
+            isPaused = true;
+        }
+    }
+
+    public void onAppForeground() {
+        if (pausedBySystem && mediaPlayer != null) {
+            mediaPlayer.start();
+            pausedBySystem = false;
+            isPaused = false;
+        }
+    }
+
 
     public void play(int rawResId) {
         if (mediaPlayer != null) {
@@ -96,13 +122,4 @@ public class MusicService extends Service {
         return currentTrackName;
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (mediaPlayer != null) {
-            mediaPlayer.stop();
-            mediaPlayer.release();
-            mediaPlayer = null;
-        }
-    }
 }
