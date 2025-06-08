@@ -55,7 +55,7 @@ class ServerCommandThread extends Thread {
             socket.close();
         } catch (Exception e) {
             e.printStackTrace();
-            parent.showMessage(ip + ": Connection failed - " + e.getMessage());
+            parent.showMessage("❌ " + ip + ": Connection failed - " + e.getMessage());
         }
     }
 }

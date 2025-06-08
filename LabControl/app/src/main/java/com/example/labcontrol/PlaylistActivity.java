@@ -111,14 +111,6 @@ public class PlaylistActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onRestart() {
-        super.onRestart();
-        if (isMusicBound && !musicService.isPlaying()) {
-            musicService.pauseOrResume();
-        }
-    }
-
-    @Override
     protected void onDestroy() {
         super.onDestroy();
         if (isMusicBound) {

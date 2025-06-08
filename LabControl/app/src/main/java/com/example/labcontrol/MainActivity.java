@@ -20,10 +20,13 @@ import android.widget.ToggleButton;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import com.jamierf.wol.WakeOnLan;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     final int SERVER_PORT = 41007;
@@ -41,9 +44,44 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private ServerStatusService serverStatusService;
     private boolean isServerStatusBound = false;
+    private Map<String, Boolean> serverConnectionStatus = new HashMap<>();
+
+    static final Map<String, String> ipToMacMap =
+            Stream.of(new String[][] {
+                            { "192.168.88.2",  "50:81:40:2B:91:8D" },   // PRPC01
+                            { "192.168.88.3",  "50:81:40:2B:7C:78" },   // PRPC02
+                            { "192.168.88.4",  "50:81:40:2B:78:DD" },   // PRPC03
+                            { "192.168.88.5",  "50:81:40:2B:7B:3D" },   // PRPC04
+                            { "192.168.88.6",  "50:81:40:2B:79:91" },   // PRPC05
+                            { "192.168.88.7",  "C8:5A:CF:0F:76:3D" },   // PRPC06
+                            { "192.168.88.8",  "C8:5A:CF:0D:71:24" },   // PRPC07
+                            { "192.168.88.9",  "C8:5A:CF:0F:B3:FF" },   // PRPC08
+                            { "192.168.88.10", "C8:5A:CF:0E:2C:C4" },   // PRPC09
+                            { "192.168.88.11", "C8:5A:CF:0F:7C:D0" },   // PRPC10
+                            { "192.168.88.12", "C8:5A:CF:0D:71:3A" },   // PRPC11
+                            { "192.168.88.13", "C8:5A:CF:0F:EE:01" },   // PRPC12
+                            { "192.168.88.14", "C8:5A:CF:0E:1D:88" },   // PRPC13
+                            { "192.168.88.15", "C8:5A:CF:0F:F0:1E" },   // PRPC14
+                            { "192.168.88.16", "50:81:40:2B:7D:A4" },   // PRPC15
+                            { "192.168.88.17", "C8:5A:CF:0E:2C:78" },   // PRPC16
+                            { "192.168.88.18", "50:81:40:2B:87:F4" },   // PRPC17
+                            { "192.168.88.19", "C8:5A:CF:0F:EC:11" },   // PRPC18
+                            { "192.168.88.20", "C8:5A:CF:0F:7C:1F" },   // PRPC19
+                            { "192.168.88.21", "C8:5A:CF:0D:71:2C" },   // PRPC20
+                            { "192.168.88.22", "C8:5A:CF:0D:70:95" },   // PRPC21
+                            { "192.168.88.23", "50:81:40:2B:5F:D0" },   // PRPC22
+                            { "192.168.88.24", "50:81:40:2B:7A:0B" },   // PRPC23
+                            { "192.168.88.25", "50:81:40:2B:8F:D3" },   // PRPC24
+                            { "192.168.88.26", "50:81:40:2B:72:E0" },   // PRPC25
+                            { "192.168.88.27", "50:81:40:2B:7A:74" },   // PRPC26
+                            { "192.168.88.28", "C8:5A:CF:0F:7C:D4" }    // PRPC27DESK
+                    })
+                    .collect(Collectors.toMap(data -> data[0], data -> data[1],
+                            (e1, e2) -> e1, LinkedHashMap::new));
 
     static final Map<String, String> ipToNameMap = Stream.of(new String[][] {
-            { "100.110.22.5", "TestHome" },
+            { "192.168.1.196", "TestHome"},
+            { "100.110.22.5", "TestHomeVPN" },
             { "195.130.107.107", "PADA" },
             { "192.168.88.2", "PRPC01" },
             { "192.168.88.3", "PRPC02" },
@@ -118,6 +156,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         Intent serverIntent = new Intent(this, ServerStatusService.class);
         bindService(serverIntent, connection, Context.BIND_AUTO_CREATE);
+
+        for (String ip : ipToNameMap.keySet()) {
+            serverConnectionStatus.put(ip, false);
+        }
     }
 
     @Override
@@ -126,6 +168,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (isMusicBound) {
             String track = musicService.getCurrentTrackName();
             currentSongText.setText(padding + "Now Playing: " + track + padding);
+            musicToggleButton.setChecked(musicService.isPlaying());
         }
     }
 
@@ -168,6 +211,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             serverStatusService.setCallback((ip, isConnected, os) -> runOnUiThread(() -> {
                 for (int i = 0; i < serverCheckboxContainer.getChildCount(); i++) {
+                    serverConnectionStatus.put(ip, isConnected);
                     CheckBox cb = (CheckBox) serverCheckboxContainer.getChildAt(i);
                     String cbIp = cb.getTag().toString();
                     if (cbIp.equals(ip)) {
@@ -188,41 +232,72 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
-        String command = "";
-        if (v == echoButton)    command = "echo";
-        if (v == restartButton) command = "restart";
-        if (v == shutdownButton)command = "shutdown";
-        if (v == restoreButton) command = "restore";
+        if (v == echoButton || v == restartButton || v == shutdownButton || v == restoreButton) {
+            String command = "";
+            if (v == echoButton) command = "echo";
+            if (v == restartButton) command = "restart";
+            if (v == shutdownButton) command = "shutdown";
+            if (v == restoreButton) command = "restore";
 
-        if (!command.isEmpty()) {
             responseTextView.setText("");
+            boolean anyServerSelected = false;
+
+            for (int i = 0; i < serverCheckboxContainer.getChildCount(); i++) {
+                CheckBox cb = (CheckBox) serverCheckboxContainer.getChildAt(i);
+                if (cb.isChecked() && cb.isEnabled()) {
+                    anyServerSelected = true;
+                    String ip = cb.getTag().toString();
+                    new ServerCommandThread(this, ip, command).start();
+                }
+            }
+
+            if (!anyServerSelected) {
+                showMessage("ℹ️ No servers selected to execute " + command);
+            }
+            return;
+        }
+
+        if (v == selectAllButton) {
+            for (int i = 0; i < serverCheckboxContainer.getChildCount(); i++) {
+                CheckBox cb = (CheckBox) serverCheckboxContainer.getChildAt(i);
+                cb.setChecked(!cb.isChecked());
+            }
+            return;
         }
 
         if (v == wakeButton) {
+            responseTextView.setText("");
             boolean anySelected = false;
+
             for (int i = 0; i < serverCheckboxContainer.getChildCount(); i++) {
                 CheckBox cb = (CheckBox) serverCheckboxContainer.getChildAt(i);
                 if (cb.isChecked() && cb.isEnabled()) {
                     anySelected = true;
                     String ip = cb.getTag().toString();
-                    String mac = WakeOnLan.ipToMacMap.get(ip);
-                    if (mac == null) {
-                        Toast.makeText(this, "No MAC found for " + ip, Toast.LENGTH_SHORT).show();
+                    String serverName = ipToNameMap.get(ip);
+
+                    if (serverConnectionStatus.getOrDefault(ip, false)) {
+                        showMessage("⚠️ " + serverName + " is already connected!");
                         continue;
                     }
-                    String broadcastIp = ip.substring(0, ip.lastIndexOf('.')) + ".255";
+
+                    String mac = ipToMacMap.get(ip);
+                    if (mac == null) {
+                        showMessage("❌ No MAC found for " + serverName + " (" + ip + ")");
+                        continue;
+                    }
+
                     try {
-                        WakeOnLan.sendWakeOnLan(broadcastIp, mac);
-                        Toast.makeText(this, "Sent WOL to " + ip, Toast.LENGTH_SHORT).show();
+                        WakeOnLan.wake(mac);
+                        showMessage("✅ Sent WOL to " + serverName + " (" + ip + ")");
                     } catch (Exception e) {
-                        Toast.makeText(this,
-                                "Failed WOL to " + ip + ": " + e.getMessage(),
-                                Toast.LENGTH_LONG).show();
+                        showMessage("❌ Failed WOL to " + serverName + ": " + e.getMessage());
                     }
                 }
             }
+
             if (!anySelected) {
-                Toast.makeText(this, "No servers selected for Wake-on-LAN", Toast.LENGTH_SHORT).show();
+                showMessage("ℹ️ No servers selected for Wake-on-LAN");
             }
             return;
         }
@@ -239,17 +314,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Intent intent = new Intent(MainActivity.this, PlaylistActivity.class);
             startActivity(intent);
             return;
-        }
-
-        for (int i = 0; i < serverCheckboxContainer.getChildCount(); i++) {
-            CheckBox cb = (CheckBox) serverCheckboxContainer.getChildAt(i);
-            if (v == selectAllButton) {
-                cb.setChecked(!cb.isChecked());
-            }
-            else if (cb.isChecked() && cb.isEnabled()) {
-                String ip = cb.getTag().toString();
-                new ServerCommandThread(this, ip, command).start();
-            }
         }
     }
 
