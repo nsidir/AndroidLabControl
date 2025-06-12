@@ -14,7 +14,6 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,8 +24,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import com.jamierf.wol.WakeOnLan;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     final int SERVER_PORT = 41007;
@@ -80,9 +77,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             (e1, e2) -> e1, LinkedHashMap::new));
 
     static final Map<String, String> ipToNameMap = Stream.of(new String[][] {
-            { "192.168.1.196", "TestHome"},
-            { "100.110.22.5", "TestHomeVPN" },
-            { "195.130.107.107", "PADA" },
             { "192.168.88.2", "PRPC01" },
             { "192.168.88.3", "PRPC02" },
             { "192.168.88.4", "PRPC03" },
@@ -155,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bindService(startMusic, musicConnection, Context.BIND_AUTO_CREATE);
 
         Intent serverIntent = new Intent(this, ServerStatusService.class);
-        bindService(serverIntent, connection, Context.BIND_AUTO_CREATE);
+        bindService(serverIntent, statusConnection, Context.BIND_AUTO_CREATE);
 
         for (String ip : ipToNameMap.keySet()) {
             serverConnectionStatus.put(ip, false);
@@ -202,7 +196,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     };
 
-    private final ServiceConnection connection = new ServiceConnection() {
+    private final ServiceConnection statusConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             ServerStatusService.LocalBinder binder = (ServerStatusService.LocalBinder) service;
@@ -288,10 +282,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
 
                     try {
-                        WakeOnLan.wake(mac);
+                        WakeOnLan.sendWolPacket(mac);
                         showMessage("✅ Sent WOL to " + serverName + " (" + ip + ")");
                     } catch (Exception e) {
                         showMessage("❌ Failed WOL to " + serverName + ": " + e.getMessage());
+                        e.printStackTrace();
                     }
                 }
             }
@@ -343,7 +338,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         if (isServerStatusBound) {
             serverStatusService.stopPeriodicChecks();
-            unbindService(connection);
+            unbindService(statusConnection);
             isServerStatusBound = false;
         }
     }

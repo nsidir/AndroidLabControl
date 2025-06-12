@@ -119,6 +119,7 @@ public class ServerStatusService extends Service {
         super.onDestroy();
     }
 
+    // functional interface
     public interface ServerStatusCallback {
         void onServerStatusChecked(String ip, boolean isConnected, String os);
     }
