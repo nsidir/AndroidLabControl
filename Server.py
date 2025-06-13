@@ -11,13 +11,7 @@ def get_hostname():
     return socket.gethostname()
 
 def get_os():
-    sys = platform.system()
-    if sys == "Linux":
-        return "Linux"
-    elif sys == "Windows":
-        return "Windows"
-    else:
-        return sys
+    return platform.system()
 
 def handle_getOS(conn, os_name):
     response = f"{os_name}"
